@@ -1,3 +1,5 @@
+// vim: syntax=Xtend
+
 Group MT_E                  "Enrih's room"  <bedroom>   ["EnrihsRoom"]
 Group MT_M_H                "Sisters room"  <bedroom>   ["SistersRoom"]
 Group Kitchen               "Kitchen"       <kitchen>   ["Kitchen"]
