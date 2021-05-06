@@ -1,0 +1,12 @@
+sitemap default label="Home"
+{
+Frame label="Rooms" {
+		Group item=MT_E
+		Group item=MT_M_H
+		Group item=Kitchen
+	}
+	Frame label="General" {
+        Switch item=PresenceSwitch label="Room Presence switch" icon="motion"
+	}
+
+}

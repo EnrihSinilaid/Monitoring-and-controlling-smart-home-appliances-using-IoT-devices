@@ -1,0 +1,154 @@
+rule "Init"
+when
+	System started
+then
+	PresenceSwitch.postUpdate(ON)
+
+    enrih_count.postUpdate("0")
+    sisters_count.postUpdate("0")
+    kitchen_count.postUpdate("0")
+
+    EnrihLoc.postUpdate("None")
+    EnrihRssi.postUpdate("-255")
+
+    AnneliLoc.postUpdate("None")
+    AnneliRssi.postUpdate("-255")
+
+    HelenaLoc.postUpdate("None")
+    HelenaRssi.postUpdate("-255")
+
+    MerilinLoc.postUpdate("None")
+    MerilinRssi.postUpdate("-255")
+
+    MargoLoc.postUpdate("None")
+    MargoRssi.postUpdate("-255")
+end
+
+rule "Location update"
+when
+	Item SystemPresence received update
+then
+    if(PresenceSwitch.state == ON){
+        
+        // user count in rooms is nullified
+        enrih_count.postUpdate("0")
+        sisters_count.postUpdate("0")
+        kitchen_count.postUpdate("0")
+
+        val jsonMsg = SystemPresence.state.toString
+        logInfo("json", jsonMsg)
+        val room    			= transform("JSONPATH", "$.room",    jsonMsg)
+        val enrih_rssi  			= transform("JSONPATH", "$.values[0].enrih",  jsonMsg)
+        val anneli_rssi  			= transform("JSONPATH", "$.values[0].anneli",  jsonMsg)
+        val merilin_rssi  			= transform("JSONPATH", "$.values[0].merilin",  jsonMsg)
+        val helena_rssi  			= transform("JSONPATH", "$.values[0].helena",  jsonMsg)
+        val margo_rssi  			= transform("JSONPATH", "$.values[0].margo",  jsonMsg)
+        val guest                   = transform("JSONPATH", "$.guests",    jsonMsg)
+        //logInfo("json", room + enrih_rssi + anneli_rssi + merilin_rssi + helena_rssi + margo_rssi)
+        logInfo("Presence System", room)
+        if( guest == "True" ) {
+            if( room == "enrih" ) {
+                HueColorLamp1Switch.sendCommand(ON)
+            }
+            if( room == "kitchen" ) {
+                HueColorLamp2Switch.sendCommand(ON)
+            }
+            
+        }
+        Room_Presence_Loc.members.forEach[profile_loc|
+
+            if(profile_loc.name == EnrihLoc.name){
+                if(room != EnrihLoc.state.toString && enrih_rssi != "None"){
+                    if(Integer::parseInt(EnrihRssi.state.toString) < Integer::parseInt(enrih_rssi)) {
+                        EnrihLoc.postUpdate(room)
+                    }
+                }
+                else if(room == EnrihLoc.state.toString && enrih_rssi == "None"){
+                    EnrihLoc.postUpdate("None")
+                    EnrihRssi.postUpdate("-255")
+                }
+            }
+            else if(profile_loc.name == MerilinLoc.name){
+                if(room != MerilinLoc.state.toString && merilin_rssi != "None"){
+                    if(Integer::parseInt(MerilinRssi.state.toString) < Integer::parseInt(merilin_rssi)) {
+                        MerilinLoc.postUpdate(room)
+                    }
+                }
+                else if(room == MerilinLoc.state.toString && merilin_rssi == "None"){
+                    MerilinLoc.postUpdate("None")
+                    MerilinRssi.postUpdate("-255")
+                }
+            }
+            else if(profile_loc.name == AnneliLoc.name){
+                if(room != AnneliLoc.state.toString && anneli_rssi != "None"){
+                    if(Integer::parseInt(AnneliRssi.state.toString) < Integer::parseInt(anneli_rssi)) {
+                        AnneliLoc.postUpdate(room)
+                    }
+                }
+                else if(room == AnneliLoc.state.toString && anneli_rssi == "None"){
+                    AnneliLoc.postUpdate("None")
+                    AnneliRssi.postUpdate("-255")
+                }
+            }
+            else if(profile_loc.name == HelenaLoc.name){
+                if(room != HelenaLoc.state.toString && helena_rssi != "None"){
+                    if(Integer::parseInt(HelenaRssi.state.toString) < Integer::parseInt(helena_rssi)) {
+                        HelenaLoc.postUpdate(room)
+                    }
+                }
+                else if(room == HelenaLoc.state.toString && helena_rssi == "None"){
+                    HelenaLoc.postUpdate("None")
+                    HelenaRssi.postUpdate("-255")
+                }
+            }
+            else if(profile_loc.name == MargoLoc.name){
+                if(room != MargoLoc.state.toString && margo_rssi != "None"){
+                    if(Integer::parseInt(MargoRssi.state.toString) < Integer::parseInt(margo_rssi)) {
+                        MargoLoc.postUpdate(room)
+                    }
+                }
+                else if(room == MargoLoc.state.toString && margo_rssi == "None"){
+                    MargoLoc.postUpdate("None")
+                    MargoRssi.postUpdate("-255")
+                }
+            }
+        ]
+
+        
+        // Users in room are counted
+        Room_Presence_Loc.members.forEach[profile_loc|
+        if(profile_loc.state.toString == "enrih"){
+            enrih_count.postUpdate(Integer::parseInt(enrih_count.state.toString) + 1)
+        }
+        else if(profile_loc.state.toString == "kitchen"){
+            kitchen_count.postUpdate(Integer::parseInt(kitchen_count.state.toString) + 1)
+        }
+        else if(profile_loc.state.toString == "Sisters"){
+            sisters_count.postUpdate(Integer::parseInt(sisters_count.state.toString) + 1)
+        }
+        ]
+
+        //Devices in the rooms are controlled based on the count of users in the room
+        if(Integer::parseInt(enrih_count.state.toString) > 0){
+            HueColorLamp1Switch.sendCommand(ON)
+        }
+        else{
+            HueColorLamp1Switch.sendCommand(OFF)
+        }
+
+        if(Integer::parseInt(kitchen_count.state.toString) > 0){
+            HueColorLamp2Switch.sendCommand(ON)
+        }
+        else{
+            HueColorLamp2Switch.sendCommand(OFF)
+        }
+        /* As there is no tracker in this room, then it is disabled right now
+        if(Integer::parseInt(sisters_count.state.toString) > 0){
+            HueColorLamp3Switch.sendCommand(ON)
+        }
+        else{
+            HueColorLamp3Switch.sendCommand(OFF)
+        }*/
+        logInfo("Presence System", room + " update done!")
+    }
+end

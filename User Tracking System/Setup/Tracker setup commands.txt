@@ -1,0 +1,11 @@
+#For room_presence.py script on RPI0 W running Raspberry Pi OS lite 32bit
+
+#Raspberry modules (mandatory):
+sudo apt-get install mosquitto
+sudo apt-get install mosquitto-clients
+sudo apt-get install bluetooth bluez libbluetooth-dev
+
+#Python 2 setup:
+sudo apt-get install python-pip
+sudo python -m pip install paho-mqtt
+sudo python -m pip install pybluez
