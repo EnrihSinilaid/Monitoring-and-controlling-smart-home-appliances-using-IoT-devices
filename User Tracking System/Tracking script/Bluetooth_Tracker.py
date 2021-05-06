@@ -87,7 +87,7 @@ client.connect(broker_address, port=1883)
 client.loop_start()
 
 #topic
-topic = "rpi1/enrih"
+topic = "home/room-presence"
 
 #House users
 enrih = "04:B4:29:08:8C:82"
